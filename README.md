@@ -392,6 +392,236 @@ fn main() {
 }
 ```
 
+## Ownership in Detail
+
+Rust's ownership system is one of its most distinctive features, managing memory safety without garbage collection. Here's a deep dive into how it works:
+
+### Core Ownership Rules
+
+1. Each value has exactly one owner
+2. There can only be one owner at a time
+3. When the owner goes out of scope, the value is dropped
+
+### Stack vs Heap Memory
+
+| Characteristic | Stack | Heap |
+|---------------|--------|-------|
+| Speed | Faster (push/pop) | Slower (allocation/deallocation) |
+| Size | Limited, fixed-size data | Dynamic, flexible size data |
+| Organization | LIFO (Last In, First Out) | Unordered, accessed via pointers |
+| Memory Management | Automatic | Manual (handled by ownership in Rust) |
+| Data Types | Known size at compile time (integers, chars, etc.) | Unknown size at compile time (String, Vec, etc.) |
+| Access Pattern | Direct, sequential | Random access via pointers |
+| Common Uses | - Local variables<br>- Function parameters<br>- Function calls<br>- Fixed-size arrays | - Dynamic arrays<br>- Strings<br>- Objects<br>- Large data structures |
+| Allocation Time | Compile time | Runtime |
+| Ownership Impact | Copy semantics (simple copy) | Move semantics (ownership transfer) |
+
+Example of stack vs heap allocation:
+```rust
+fn main() {
+    // Stack allocation
+    let x = 42;                    // Integer on stack
+    let y = true;                  // Boolean on stack
+    let z = 'a';                   // Character on stack
+
+    // Heap allocation
+    let s = String::from("hello"); // String data on heap, pointer on stack
+    let v = vec![1, 2, 3];        // Vector data on heap, pointer on stack
+}
+```
+
+### Examples of Ownership
+
+#### Basic Ownership Transfer
+```rust
+fn main() {
+    // s1 owns the string data
+    let s1 = String::from("hello");
+    
+    let s2 = s1;  // Ownership moves from s1 to s2
+    
+    // println!("{}", s1);  // This would cause a compile error
+    println!("{}", s2);     // This works fine
+}
+```
+
+#### Ownership with Functions
+```rust
+fn main() {
+    let s = String::from("hello");
+    takes_ownership(s);     // s's value moves into the function
+    // println!("{}", s);   // Error! s is no longer valid
+
+    let x = 5;
+    makes_copy(x);         // i32 is Copy, so x is still valid
+    println!("{}", x);     // This works!
+}
+
+fn takes_ownership(some_string: String) {
+    println!("{}", some_string);
+}   // some_string goes out of scope and is dropped
+
+fn makes_copy(some_integer: i32) {
+    println!("{}", some_integer);
+}   // some_integer goes out of scope, nothing special happens
+```
+
+### Return Values and Ownership
+```rust
+fn main() {
+    let s1 = gives_ownership();         // gives_ownership moves its return value into s1
+    
+    let s2 = String::from("hello");     // s2 comes into scope
+    
+    let s3 = takes_and_gives_back(s2);  // s2 is moved into the function,
+                                        // and the return value is moved into s3
+}
+
+fn gives_ownership() -> String {
+    let some_string = String::from("yours");
+    some_string                         // Returns ownership to calling function
+}
+
+fn takes_and_gives_back(a_string: String) -> String {
+    a_string  // Returns ownership of parameter
+}
+```
+
+### Copy vs. Move Types
+
+#### Types that implement Copy:
+- All integer types (u32, i32, etc.)
+- Boolean type (bool)
+- Floating point types (f64, f32)
+- Character type (char)
+- Tuples, but only if they contain types that also implement Copy
+- Fixed-size arrays of Copy types
+
+```rust
+fn main() {
+    // Copy types
+    let x = 5;
+    let y = x;  // x is copied to y
+    println!("x = {}, y = {}", x, y);  // Both work!
+
+    // Move types
+    let s1 = String::from("hello");
+    let s2 = s1;  // s1 is moved to s2
+    // println!("{}", s1);  // Error!
+    println!("{}", s2);     // Works
+}
+```
+
+### References and Borrowing
+
+#### Borrowing Rules:
+1. At any given time, you can have either:
+   - One mutable reference
+   - Any number of immutable references
+2. References must always be valid (no dangling references)
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    // Immutable borrowing
+    let r1 = &s;
+    let r2 = &s;
+    println!("{} and {}", r1, r2);
+    // r1 and r2 are no longer used after this point
+
+    // Mutable borrowing
+    let r3 = &mut s;
+    r3.push_str(", world");
+    println!("{}", r3);
+}
+```
+
+#### Reference Scope Example
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    let r1 = &s;     // no problem
+    let r2 = &s;     // no problem
+    println!("{} and {}", r1, r2);
+    // r1 and r2 are no longer used after this point
+
+    let r3 = &mut s; // okay - r1 and r2 are no longer in scope
+    println!("{}", r3);
+}
+```
+
+### Preventing Dangling References
+```rust
+fn main() {
+    let reference_to_nothing = dangle();
+}
+
+fn dangle() -> &String {           // Error!
+    let s = String::from("hello");
+    &s  // We try to return a reference to s
+}      // s goes out of scope and is dropped
+       // Its reference would be dangling!
+
+// Correct version - return the String directly
+fn no_dangle() -> String {
+    let s = String::from("hello");
+    s  // Transfer ownership of s to the calling function
+}
+```
+
+### Slice Type
+
+Slices let you reference a contiguous sequence of elements without taking ownership:
+
+```rust
+fn main() {
+    let mut s = String::from("hello world");
+
+    let word = first_word(&s);  // word gets the value 5
+    
+    s.clear();  // This empties the String
+    
+    // word still has the value 5 here, but there's no more string 
+    // that we could meaningfully use the value 5 with. word is now invalid!
+}
+
+fn first_word(s: &String) -> usize {
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return i;
+        }
+    }
+
+    s.len()
+}
+
+// Better version using string slices
+fn better_first_word(s: &str) -> &str {
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+
+    &s[..]
+}
+```
+
+### Memory Safety Benefits
+
+Rust's ownership system provides several key benefits:
+1. **No null pointer dereferences**
+2. **No dangling pointers**
+3. **No double free errors**
+4. **No memory leaks** (in safe Rust)
+5. **Thread safety** (ownership rules apply across threads)
+
 ---
 
 ## Structs and Enums
