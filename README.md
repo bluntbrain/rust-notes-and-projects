@@ -374,7 +374,7 @@ fn main() {
     println!("The length of '{}' is {}.", s, len);
 }
 
-fn calculate_length(s: &String) -> usize {
+fn calculate_length(s: &String) -> usize { // observe &String is used istead of String 
     s.len()
 }
 ```
@@ -536,6 +536,42 @@ fn main() {
     println!("{}", r3);
 }
 ```
+
+#### Basic Mutable Reference Example
+```rust
+fn main() {
+    let mut x = 5;
+    x = x + 1;                // x is now 6
+    
+    let y = &mut x;           // y is a mutable reference to x
+    *y = *y + 1;             // Dereference y to modify x, x is now 7
+    
+    println!("x={}", y);      // Prints: x=7
+}
+```
+Note: The `*` operator is used to dereference a reference, allowing us to access or modify 
+the value it points to. When printing, Rust automatically dereferences the reference.
+
+#### Multiple Mutable References Example
+```rust
+fn main() {
+    let mut s1: String = String::from("Hello");
+    
+    let w1 = &mut s1;           // First mutable borrow
+    w1.push_str(" World");      // Modify the string through w1
+    
+    let w2 = &mut s1;           // Second mutable borrow (invalidates w1)
+    w2.push_str(" Code");       // Modify the string through w2
+    
+    // Trying to use both w1 and w2 here causes a compilation error!
+    println!("w1={} w2={}", w1, w2);  // Error: cannot use `w1` after creating `w2`
+                                      // w1's borrow was invalidated when w2 was created
+}
+```
+Note: This example demonstrates Rust's strict borrowing rules. When we create the second 
+mutable reference `w2`, the first reference `w1` becomes invalid. Attempting to use `w1` 
+after creating `w2` results in a compilation error, preventing potential data races and 
+ensuring memory safety.
 
 #### Reference Scope Example
 ```rust
