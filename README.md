@@ -1,5 +1,9 @@
 # Rust Notes and Projects
 
+## Projects
+1. [Guessing Game](guessing_game/src/game.rs) - A simple fruit guessing game using random selection
+2. [Tic Tac Toe](tic_tac_toe/src/game.rs) - A command-line implementation of Tic Tac Toe
+
 ## Table of Contents
 - [Introduction & Setup](#introduction--setup)
 - [Basic Concepts](#basic-concepts)
