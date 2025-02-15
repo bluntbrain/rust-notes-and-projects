@@ -1,81 +1,69 @@
-# Rust Language Notes
-My notes on the Rust language.
+# Rust Notes and Projects
+
+## Table of Contents
+- [Introduction & Setup](#introduction--setup)
+- [Basic Concepts](#basic-concepts)
+  - [Variables and Mutability](#variables-and-mutability)
+  - [Shadowing](#shadowing)
+  - [Data Types](#data-types)
+  - [Control Flow](#control-flow)
+  - [Functions](#functions)
+- [Memory Management](#memory-management-fundamentals)
+- [Ownership System](#ownership-system)
+- [References & Borrowing](#references--borrowing)
+- [Collections](#collections)
+  - [Vectors](#vectors-vec)
+  - [Strings](#strings)
+  - [HashMaps](#hashmaps)
+- [Compound Types](#compound-types)
+  - [Structs](#structs)
+  - [Enums](#enums)
+- [Pattern Matching](#pattern-matching)
+- [Error Handling](#error-handling)
+- [Generic Types & Traits](#generic-types--traits)
+- [Modules & Project Organization](#modules--project-organization)
+- [Concurrency](#concurrency)
+- [Testing](#testing)
+- [Smart Pointers](#smart-pointers)
+- [Macros](#macros)
 
 ---
 
-## Cargo Commands
+## Introduction & Setup
 
-Cargo is Rust's build system and package manager. Here are some essential commands:
-
-- **Create a new project:**
-  ```bash
-  cargo new my_project
-  ```
-- **Build the project:**
-  ```bash
-  cargo build
-  ```
-- **Run the project:**
-  ```bash
-  cargo run
-  ```
-- **Test the project:**
-  ```bash
-  cargo test
-  ```
-- **Generate documentation:**
-  ```bash
-  cargo doc --open
-  ```
-- **Format code:**
-  ```bash
-  cargo fmt
-  ```
-- **Lint the code:**
-  ```bash
-  cargo clippy
-  ```
-- **Add a dependency (requires Cargo-edit):**
-  ```bash
-  cargo add <dependency>
-  ```
-
----
-
-## Introduction
-
-Rust is a modern, statically typed systems programming language that emphasizes performance, safety, and concurrency. Its unique ownership model ensures memory safety without a garbage collector, making it an excellent choice for systems-level and application programming.
-
----
-
-## Getting Started
+### What is Rust?
+Rust is a systems programming language that focuses on:
+- Memory safety without garbage collection
+- Concurrency without data races
+- Zero-cost abstractions
+- Performance
 
 ### Installation
-
-- **Official Website:** [Rust Installation](https://www.rust-lang.org/tools/install)
-- **Installation Command (Unix-based systems):**
-  ```bash
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  ```
-
-### Your First Rust Program (Hello World)
-
-Create a new project:
 ```bash
-cargo new hello_world
-cd hello_world
+# Unix-based systems
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Verify installation
+rustc --version
+cargo --version
 ```
 
-Then, edit the `src/main.rs` file to contain:
+### Essential Cargo Commands
+```bash
+cargo new project_name    # Create new project
+cargo build              # Compile project
+cargo run               # Run project
+cargo test              # Run tests
+cargo check             # Check if code compiles
+cargo doc --open        # Generate and view documentation
+```
+
+### Your First Program
 ```rust
+// src/main.rs
 fn main() {
-    println!("Hello, world!");
+    println!("Hello, Rust!");
 }
-```
-
-Run the project with:
-```bash
-cargo run
 ```
 
 ---
@@ -83,324 +71,256 @@ cargo run
 ## Basic Concepts
 
 ### Variables and Mutability
+> Summary: Variables are immutable by default. Use `mut` to make them mutable.
 
-By default, variables in Rust are immutable. Use the `mut` keyword to declare a mutable variable.
 ```rust
 fn main() {
-    let x = 5;
-    // x = 6; // Error: cannot assign twice to immutable variable
+    let x = 5;          // Immutable
+    // x = 6;           // Error!
+    
+    let mut y = 5;      // Mutable
+    y = 6;              // OK
+    
+    // Constants
+    const MAX_POINTS: u32 = 100_000;
+}
+```
 
-    let mut y = 5;
-    y = 6; // Correct: y is mutable
+### Shadowing
+> Summary: A new variable can be declared with the same name as a previous variable, effectively shadowing it.
+
+```rust
+fn main() {
+    // Basic shadowing
+    let x = 5;
+    let x = x + 1;        // Creates new variable, shadows previous x
+    let x = x * 2;        // Creates another new variable
+    println!("x is: {}", x);  // Prints: x is: 12
+    
+    // Shadowing with different types
+    let spaces = "   ";           // String type
+    let spaces = spaces.len();    // Number type
+    
+    // Shadowing in different scopes
+    let y = 5;
+    {
+        let y = 12;      // Only shadows within this scope
+        println!("Inner y: {}", y);  // Prints: Inner y: 12
+    }
+    println!("Outer y: {}", y);  // Prints: Outer y: 5
+    
+    // Shadowing vs mut
+    let mut z = 5;
+    // let z = "hello";  // OK with shadowing
+    // z = "hello";      // Error! Can't change type with mut
+}
+```
+
+#### Key Differences from mut
+1. Shadowing creates a new variable
+2. Can change type
+3. Maintains immutability
+4. Scope-based
+
+```rust
+fn main() {
+    // With shadowing - OK
+    let data = "   ";
+    let data = data.len();
+    
+    // With mut - Error!
+    let mut value = "   ";
+    // value = value.len();  // Type mismatch error
+    
+    // Shadowing preserves immutability
+    let number = 5;
+    let number = number + 5;  // Creates new immutable binding
+    // number += 1;          // Error! number is immutable
 }
 ```
 
 ### Data Types
 
-Rust is statically typed with powerful type inference. Key types include:
+#### Scalar Types
+1. **Integers**
+```rust
+let i: i32 = -42;       // Signed 32-bit integer
+let u: u32 = 42;        // Unsigned 32-bit integer
+let b: i8 = -128;       // Signed 8-bit integer
+let big: i128 = 123;    // Signed 128-bit integer
+```
 
-**Scalars:**
+2. **Floating-Point**
+```rust
+let f: f64 = 3.14159;   // 64-bit float (default)
+let f: f32 = 3.14;      // 32-bit float
+```
 
-1. **Integers:**
-   ```rust
-   // Signed integers
-   let i8_num: i8 = -128;            // -128 to 127
-   let i16_num: i16 = 32_767;        // -32,768 to 32,767
-   let i32_num: i32 = -2_147_483_648;// -2^31 to 2^31 - 1
-   let i64_num: i64 = 9_223_372_036; // -2^63 to 2^63 - 1
-   let i128_num: i128 = 170_141_183; // -2^127 to 2^127 - 1
-   
-   // Unsigned integers
-   let u8_num: u8 = 255;             // 0 to 255
-   let u16_num: u16 = 65_535;        // 0 to 65,535
-   let u32_num: u32 = 4_294_967_295; // 0 to 2^32 - 1
-   let u64_num: u64 = 18_446_744_073;// 0 to 2^64 - 1
-   let u128_num: u128 = 340_282_366; // 0 to 2^128 - 1
-   
-   // Architecture-dependent integers
-   let isize_num: isize = -123;      // Depends on system architecture
-   let usize_num: usize = 123;       // Depends on system architecture
-   ```
+3. **Boolean**
+```rust
+let t: bool = true;
+let f: bool = false;
+```
 
-2. **Floating-point numbers:**
-   ```rust
-   let f32_num: f32 = 3.14159;       // Single precision
-   let f64_num: f64 = 3.14159265359; // Double precision
-   
-   // Scientific notation
-   let scientific1 = 2.5e-3;         // 0.0025
-   let scientific2 = 1.23e4;         // 12300.0
-   ```
+4. **Character**
+```rust
+let c: char = 'z';
+let emoji: char = '😀';  // Unicode character
+```
 
-3. **Booleans:**
-   ```rust
-   let is_active: bool = true;
-   let is_greater = 10 > 5;          // Type inference
-   
-   // Boolean operations
-   let and_result = true && false;   // false
-   let or_result = true || false;    // true
-   let not_result = !true;           // false
-   ```
+### Strings and String Slices
+> Summary: Rust has two main string types: String (owned) and &str (borrowed string slice).
 
-4. **Characters:**
-   ```rust
-   let letter: char = 'A';           // Single quotes for char
-   let emoji: char = '😀';           // Unicode support
-   let symbol: char = '∞';           // Special symbols
-   let escape_char = '\n';           // Newline character
-   
-   // Unicode escape sequences
-   let unicode_char = '\u{1F600}';   // 😀
-   ```
-
-**Compound Types:**
-- **Tuples** and **Arrays**
 ```rust
 fn main() {
-    let tuple: (i32, f64) = (500, 6.4);
-    let emp_info: (&str,u8) = ("John", 30);
-    let emp_name = emp_info.0;
-    let emp_age = emp_info.1;
-    println!("Employee name: {}, age: {}", emp_name, emp_age);
-
-    // destructuring 
-    let (employee_name, employee_age) = emp_info;
-    println!("Employee name: {}, age: {}", employee_name, employee_age);
-
-    let array: [i32; 3] = [1, 2, 3];
+    // String type (owned, growable)
+    let mut s = String::from("hello");  // Heap allocated
+    s.push_str(", world!");            // Can modify
+    println!("{}", s);
+    
+    // String literal (&str type)
+    let s1: &str = "hello world";      // Fixed size, immutable
+    
+    // String slices
+    let hello: &str = &s[0..5];        // Slice of String
+    let world: &str = &s[7..12];       // Another slice
+    
+    // Converting between String and &str
+    let owned: String = "hello".to_string();  // &str to String
+    let owned: String = String::from("hello"); // Another way
+    let borrowed: &str = &owned;              // String to &str
+    
+    // String concatenation
+    let s1 = String::from("Hello, ");
+    let s2 = String::from("world!");
+    let s3 = s1 + &s2;  // s1 is moved here, s2 is borrowed
+    
+    // Format macro
+    let s = format!("{}-{}-{}", "Hello", "world", "!");
 }
 ```
 
-### Strings
-
-Rust has two main string types: `String` and `&str`.
-
-1. **String Slice (`&str`):**
-   ```rust
-   // String literals are &str by default
-   let hello: &str = "Hello, world!";
-   
-   // String slices are immutable references
-   let slice: &str = &hello[0..5]; // "Hello"
-   
-   // Multi-line string literals
-   let multi_line = "This is a
-   multi-line string";
-   
-   // Raw string literals (no escape characters)
-   let raw_string = r"C:\Program Files\Rust";
-   ```
-
-2. **String Type (`String`):**
-   ```rust
-   // Creating new String
-   let mut string = String::new();
-   let string_from = String::from("Hello");
-   let to_string = "Hello".to_string();
-   
-   // Modifying String
-   let mut s = String::from("Hello");
-   s.push_str(", world!");    // Append string slice
-   s.push('!');               // Append single character
-   
-   // Concatenation
-   let s1 = String::from("Hello, ");
-   let s2 = String::from("world!");
-   let s3 = s1 + &s2;        // Note: s1 is moved here
-   
-   // Format macro
-   let s = format!("{}-{}-{}", "Hello", "world", "!");
-   ```
-
-3. **Converting Between `String` and `&str`:**
-   ```rust
-   // &str to String
-   let owned: String = "hello".to_string();
-   let also_owned = String::from("hello");
-   
-   // String to &str
-   let string = String::from("hello");
-   let borrowed: &str = &string;
-   let slice: &str = string.as_str();
-   ```
-
-4. **String Operations:**
-   ```rust
-   let mut s = String::from("Hello, world!");
-   
-   // Length
-   let len = s.len();                // 13 bytes (not characters!)
-   
-   // Iteration
-   for c in s.chars() {              // Iterate over characters
-       println!("{}", c);
-   }
-   
-   for b in s.bytes() {              // Iterate over bytes
-       println!("{}", b);
-   }
-   
-   // Substring
-   let hello = &s[0..5];             // "Hello"
-   
-   // Clear
-   s.clear();                        // Empty the string
-   
-   // Check if empty
-   let is_empty = s.is_empty();      // true
-   ```
-
-5. **Unicode and UTF-8:**
-   ```rust
-   // UTF-8 encoded by default
-   let hello = String::from("Hello, 世界");
-   
-   // Length in bytes vs chars
-   println!("Bytes: {}", hello.len());           // 13
-   println!("Chars: {}", hello.chars().count()); // 8
-   
-   // Individual Unicode characters
-   let char_indices: Vec<(usize, char)> = hello.char_indices().collect();
-   // [(0, 'H'), (1, 'e'), (2, 'l'), (3, 'l'), (4, 'o'), 
-   //  (5, ','), (6, ' '), (7, '世'), (10, '界')]
-   ```
-
-6. **Common Methods:**
-   ```rust
-   let mut s = String::from("Hello, world!");
-   
-   // Transformations
-   let uppercase = s.to_uppercase();
-   let lowercase = s.to_lowercase();
-   
-   // Trimming
-   let trimmed = s.trim();           // Remove whitespace
-   let trim_start = s.trim_start();  // Remove leading whitespace
-   let trim_end = s.trim_end();      // Remove trailing whitespace
-   
-   // Replace
-   let replaced = s.replace("Hello", "Hi");
-   
-   // Split
-   let words: Vec<&str> = s.split_whitespace().collect();
-   let parts: Vec<&str> = s.split(',').collect();
-   ```
-
-**Note:** String operations in Rust are designed with UTF-8 encoding in mind, making them safe for international text but requiring careful handling when working with individual characters or slices.
-
-### Functions
-
-Define functions using the `fn` keyword. Rust allows implicit returns by omitting the semicolon on the last expression.
+#### Key Differences
 ```rust
-fn add(a: i32, b: i32) -> i32 {
-    a + b
+fn main() {
+    // Memory allocation
+    let s1 = String::from("hello");  // Heap allocated
+    let s2 = "hello";                // Stored in binary
+    
+    // Mutability
+    let mut s = String::from("hello");
+    s.push_str(" world");           // OK with String
+    // "hello".push_str(" world");  // Error with &str
+    
+    // Function parameters
+    fn takes_slice(s: &str) {       // Can accept both String and &str
+        println!("{}", s);
+    }
+    
+    fn takes_string(s: String) {    // Only accepts String
+        println!("{}", s);
+    }
+    
+    // Common operations
+    let len = "hello".len();        // Length
+    let chars = "hello".chars();    // Iterator over chars
+    let bytes = "hello".as_bytes(); // As byte slice
+    
+    // UTF-8
+    let hello = String::from("Здравствуйте");
+    let s = &hello[0..2];  // Takes 2 bytes (1 character)
+}
+```
+
+#### Best Practices
+```rust
+// Use &str for function parameters
+fn greet(name: &str) {
+    println!("Hello, {}!", name);
+}
+
+// Use String when you need to own and modify
+fn build_greeting() -> String {
+    let mut greeting = String::from("Hello");
+    greeting.push_str(", world!");
+    greeting
+}
+
+// String interning
+fn main() {
+    let s1: &str = "Hello";  // Single allocation in binary
+    let s2: &str = "Hello";  // Points to same memory
+    assert!(std::ptr::eq(s1, s2));
 }
 ```
 
 ### Control Flow
 
-#### Conditionals:
+#### Conditionals
 ```rust
 fn main() {
-    let number = 3;
+    let number = 6;
 
-    if number < 5 {
-        println!("number is less than 5");
+    // If expression
+    if number % 4 == 0 {
+        println!("number is divisible by 4");
+    } else if number % 3 == 0 {
+        println!("number is divisible by 3");
     } else {
-        println!("number is 5 or greater");
+        println!("number is not divisible by 4 or 3");
+    }
+
+    // If in a let statement
+    let condition = true;
+    let number = if condition { 5 } else { 6 };
+}
+```
+
+#### Loops
+```rust
+fn main() {
+    // Loop (infinite)
+    let mut counter = 0;
+    let result = loop {
+        counter += 1;
+        if counter == 10 {
+            break counter * 2;
+        }
+    };
+
+    // While loop
+    let mut number = 3;
+    while number != 0 {
+        println!("{}!", number);
+        number -= 1;
+    }
+
+    // For loop
+    for number in (1..4).rev() {
+        println!("{}!", number);
     }
 }
 ```
 
-#### Loops:
+### Functions
+```rust
+fn main() {
+    println!("Sum: {}", add(5, 6));
+}
 
-- **Infinite Loop using `loop`:**
-  ```rust
-  fn main() {
-      let mut count = 0;
-      loop {
-          count += 1;
-          if count == 5 {
-              break;
-          }
-      }
-  }
-  ```
+fn add(x: i32, y: i32) -> i32 {
+    x + y  // Implicit return (no semicolon)
+}
 
-- **`while` Loop:**
-  ```rust
-  fn main() {
-      let mut x = 5;
-      while x > 0 {
-          println!("{}", x);
-          x -= 1;
-      }
-  }
-  ```
-  
-- **`for` Loop:**
-  ```rust
-  fn main() {
-      let a = [10, 20, 30];
-      for element in a.iter() {
-          println!("{}", element);
-      }
-  }
-  ```
+// Function with multiple parameters
+fn print_labeled_measurement(value: i32, unit_label: char) {
+    println!("The measurement is: {}{}", value, unit_label);
+}
+```
 
 ---
 
-## Ownership, Borrowing, and Slices
-
-Rust's ownership system enforces memory safety at compile time.
-
-### Ownership
-```rust
-fn main() {
-    let s1 = String::from("hello");
-    let s2 = s1; // Ownership is moved from s1 to s2
-    // s1 is no longer valid here
-}
-```
-
-### Borrowing
-
-Borrow data using references to avoid transferring ownership.
-```rust
-fn main() {
-    let s = String::from("hello");
-    let len = calculate_length(&s); // Borrowing s
-    println!("The length of '{}' is {}.", s, len);
-}
-
-fn calculate_length(s: &String) -> usize { // observe &String is used istead of String 
-    s.len()
-}
-```
-
-### Slices
-
-Slices allow you to reference a contiguous sequence of elements within a collection.
-```rust
-fn main() {
-    let s = String::from("hello world");
-    let hello = &s[0..5];  // Slices the string from index 0 to 4
-    let world = &s[6..11]; // Slices the string from index 6 to 10
-
-    println!("{} {}", hello, world);
-}
-```
-
-## Ownership in Detail
-
-Rust's ownership system is one of its most distinctive features, managing memory safety without garbage collection. Here's a deep dive into how it works:
-
-### Core Ownership Rules
-
-1. Each value has exactly one owner
-2. There can only be one owner at a time
-3. When the owner goes out of scope, the value is dropped
+## Memory Management
 
 ### Stack vs Heap Memory
 
@@ -410,112 +330,125 @@ Rust's ownership system is one of its most distinctive features, managing memory
 | Size | Limited, fixed-size data | Dynamic, flexible size data |
 | Organization | LIFO (Last In, First Out) | Unordered, accessed via pointers |
 | Memory Management | Automatic | Manual (handled by ownership in Rust) |
-| Data Types | Known size at compile time (integers, chars, etc.) | Unknown size at compile time (String, Vec, etc.) |
+| Data Types | Known size at compile time | Unknown size at compile time |
 | Access Pattern | Direct, sequential | Random access via pointers |
-| Common Uses | - Local variables<br>- Function parameters<br>- Function calls<br>- Fixed-size arrays | - Dynamic arrays<br>- Strings<br>- Objects<br>- Large data structures |
-| Allocation Time | Compile time | Runtime |
-| Ownership Impact | Copy semantics (simple copy) | Move semantics (ownership transfer) |
+| Common Uses | - Local variables<br>- Function parameters<br>- Fixed-size arrays | - Strings<br>- Vectors<br>- Boxes<br>- Other dynamic data |
 
-Example of stack vs heap allocation:
+#### Example
 ```rust
 fn main() {
     // Stack allocation
     let x = 42;                    // Integer on stack
     let y = true;                  // Boolean on stack
-    let z = 'a';                   // Character on stack
-
+    
     // Heap allocation
     let s = String::from("hello"); // String data on heap, pointer on stack
     let v = vec![1, 2, 3];        // Vector data on heap, pointer on stack
 }
 ```
 
-### Examples of Ownership
+---
 
-#### Basic Ownership Transfer
+## Ownership System
+> Summary: Ownership is Rust's most unique feature, ensuring memory safety at compile time without garbage collection.
+
+### Core Ownership Rules
+1. Each value has exactly one owner
+2. There can only be one owner at a time
+3. When the owner goes out of scope, the value is dropped
+
+### Basic Ownership Examples
 ```rust
 fn main() {
-    // s1 owns the string data
+    // Simple ownership
     let s1 = String::from("hello");
-    
-    let s2 = s1;  // Ownership moves from s1 to s2
-    
-    // println!("{}", s1);  // This would cause a compile error
-    println!("{}", s2);     // This works fine
+    let s2 = s1;                // s1 is moved to s2
+    // println!("{}", s1);      // Error! s1 is no longer valid
+    println!("{}", s2);         // Works fine
+
+    // Clone for deep copy
+    let s3 = String::from("hello");
+    let s4 = s3.clone();       // Creates a deep copy
+    println!("{} {}", s3, s4); // Both valid
 }
 ```
 
-#### Ownership with Functions
+### Ownership with Functions
 ```rust
 fn main() {
     let s = String::from("hello");
-    takes_ownership(s);     // s's value moves into the function
-    // println!("{}", s);   // Error! s is no longer valid
+    takes_ownership(s);        // s is moved into the function
+    // println!("{}", s);      // Error! s is no longer valid
 
     let x = 5;
-    makes_copy(x);         // i32 is Copy, so x is still valid
-    println!("{}", x);     // This works!
+    makes_copy(x);            // i32 is Copy, so x is still valid
+    println!("{}", x);        // Works fine
 }
 
-fn takes_ownership(some_string: String) {
-    println!("{}", some_string);
-}   // some_string goes out of scope and is dropped
+fn takes_ownership(string: String) {
+    println!("{}", string);
+}   // string is dropped here
 
-fn makes_copy(some_integer: i32) {
-    println!("{}", some_integer);
-}   // some_integer goes out of scope, nothing special happens
+fn makes_copy(integer: i32) {
+    println!("{}", integer);
+}   // integer goes out of scope (copy is dropped)
 ```
 
-### Return Values and Ownership
+### Return Values and Scope
 ```rust
 fn main() {
-    let s1 = gives_ownership();         // gives_ownership moves its return value into s1
+    let s1 = gives_ownership();         // Move return value into s1
     
     let s2 = String::from("hello");     // s2 comes into scope
     
-    let s3 = takes_and_gives_back(s2);  // s2 is moved into the function,
-                                        // and the return value is moved into s3
+    let s3 = takes_and_gives_back(s2);  // s2 moved into function
+                                        // return value moved into s3
 }
 
 fn gives_ownership() -> String {
-    let some_string = String::from("yours");
-    some_string                         // Returns ownership to calling function
+    String::from("yours")               // Return value moves out
 }
 
 fn takes_and_gives_back(a_string: String) -> String {
-    a_string  // Returns ownership of parameter
+    a_string                            // Return value moves out
 }
 ```
 
-### Copy vs. Move Types
+---
 
-#### Types that implement Copy:
-- All integer types (u32, i32, etc.)
-- Boolean type (bool)
-- Floating point types (f64, f32)
-- Character type (char)
-- Tuples, but only if they contain types that also implement Copy
-- Fixed-size arrays of Copy types
+## References & Borrowing
+> Summary: References allow you to refer to a value without taking ownership.
 
+### Basic References
 ```rust
 fn main() {
-    // Copy types
-    let x = 5;
-    let y = x;  // x is copied to y
-    println!("x = {}, y = {}", x, y);  // Both work!
-
-    // Move types
     let s1 = String::from("hello");
-    let s2 = s1;  // s1 is moved to s2
-    // println!("{}", s1);  // Error!
-    println!("{}", s2);     // Works
+    
+    let len = calculate_length(&s1);    // Pass reference to s1
+    println!("Length of '{}' is {}.", s1, len);  // s1 is still valid
+}
+
+fn calculate_length(s: &String) -> usize {
+    s.len()
+}   // s goes out of scope, but doesn't drop the value it refers to
+```
+
+### Mutable References
+```rust
+fn main() {
+    let mut s = String::from("hello");
+    
+    change(&mut s);                     // Pass mutable reference
+    println!("{}", s);                  // Prints: hello world
+}
+
+fn change(some_string: &mut String) {
+    some_string.push_str(" world");
 }
 ```
 
-### References and Borrowing
-
-#### Borrowing Rules:
-1. At any given time, you can have either:
+### Reference Rules
+1. You can have either:
    - One mutable reference
    - Any number of immutable references
 2. References must always be valid (no dangling references)
@@ -524,119 +457,34 @@ fn main() {
 fn main() {
     let mut s = String::from("hello");
 
-    // Immutable borrowing
-    let r1 = &s;
-    let r2 = &s;
-    println!("{} and {}", r1, r2);
+    let r1 = &s;         // OK - immutable reference
+    let r2 = &s;         // OK - multiple immutable references allowed
+    println!("{} {}", r1, r2);
     // r1 and r2 are no longer used after this point
 
-    // Mutable borrowing
-    let r3 = &mut s;
-    r3.push_str(", world");
+    let r3 = &mut s;     // OK - no other references are active
     println!("{}", r3);
-}
-```
-
-#### Basic Mutable Reference Example
-```rust
-fn main() {
-    let mut x = 5;
-    x = x + 1;                // x is now 6
-    
-    let y = &mut x;           // y is a mutable reference to x
-    *y = *y + 1;             // Dereference y to modify x, x is now 7
-    
-    println!("x={}", y);      // Prints: x=7
-}
-```
-Note: The `*` operator is used to dereference a reference, allowing us to access or modify 
-the value it points to. When printing, Rust automatically dereferences the reference.
-
-#### Multiple Mutable References Example
-```rust
-fn main() {
-    let mut s1: String = String::from("Hello");
-    
-    let w1 = &mut s1;           // First mutable borrow
-    w1.push_str(" World");      // Modify the string through w1
-    
-    let w2 = &mut s1;           // Second mutable borrow (invalidates w1)
-    w2.push_str(" Code");       // Modify the string through w2
-    
-    // Trying to use both w1 and w2 here causes a compilation error!
-    println!("w1={} w2={}", w1, w2);  // Error: cannot use `w1` after creating `w2`
-                                      // w1's borrow was invalidated when w2 was created
-}
-```
-Note: This example demonstrates Rust's strict borrowing rules. When we create the second 
-mutable reference `w2`, the first reference `w1` becomes invalid. Attempting to use `w1` 
-after creating `w2` results in a compilation error, preventing potential data races and 
-ensuring memory safety.
-
-#### Reference Scope Example
-```rust
-fn main() {
-    let mut s = String::from("hello");
-
-    let r1 = &s;     // no problem
-    let r2 = &s;     // no problem
-    println!("{} and {}", r1, r2);
-    // r1 and r2 are no longer used after this point
-
-    let r3 = &mut s; // okay - r1 and r2 are no longer in scope
-    println!("{}", r3);
-}
-```
-
-### Preventing Dangling References
-```rust
-fn main() {
-    let reference_to_nothing = dangle();
-}
-
-fn dangle() -> &String {           // Error!
-    let s = String::from("hello");
-    &s  // We try to return a reference to s
-}      // s goes out of scope and is dropped
-       // Its reference would be dangling!
-
-// Correct version - return the String directly
-fn no_dangle() -> String {
-    let s = String::from("hello");
-    s  // Transfer ownership of s to the calling function
 }
 ```
 
 ### Slice Type
-
-Slices let you reference a contiguous sequence of elements without taking ownership:
+> Summary: Slices let you reference a contiguous sequence of elements rather than the whole collection.
 
 ```rust
 fn main() {
-    let mut s = String::from("hello world");
+    let s = String::from("hello world");
 
-    let word = first_word(&s);  // word gets the value 5
+    let hello = &s[0..5];  // Slice from index 0 to 4
+    let world = &s[6..11]; // Slice from index 6 to 10
     
-    s.clear();  // This empties the String
-    
-    // word still has the value 5 here, but there's no more string 
-    // that we could meaningfully use the value 5 with. word is now invalid!
+    println!("{} {}", hello, world);
+
+    // String slice parameter
+    let word = first_word(&s);
+    println!("First word: {}", word);
 }
 
-fn first_word(s: &String) -> usize {
-    let bytes = s.as_bytes();
-
-    for (i, &item) in bytes.iter().enumerate() {
-        if item == b' ' {
-            return i;
-        }
-    }
-
-    s.len()
-}
-
-// Better version using string slices
-fn better_first_word(s: &str) -> &str {
+fn first_word(s: &str) -> &str {
     let bytes = s.as_bytes();
 
     for (i, &item) in bytes.iter().enumerate() {
@@ -649,23 +497,171 @@ fn better_first_word(s: &str) -> &str {
 }
 ```
 
-### Memory Safety Benefits
+---
 
-Rust's ownership system provides several key benefits:
-1. **No null pointer dereferences**
-2. **No dangling pointers**
-3. **No double free errors**
-4. **No memory leaks** (in safe Rust)
-5. **Thread safety** (ownership rules apply across threads)
+## Collections
+> Summary: Collections are data structures that can contain multiple values. The most common are Vec, String, and HashMap.
+
+### Vectors (Vec<T>)
+> Summary: A vector is a growable array type that can hold any type T.
+
+#### Creating and Updating Vectors
+```rust
+fn main() {
+    // Creating vectors
+    let mut v1: Vec<i32> = Vec::new();        // Empty vector
+    let v2 = vec![1, 2, 3];                   // Using vec! macro
+    
+    // Adding elements
+    v1.push(1);
+    v1.push(2);
+    v1.push(3);
+    
+    // Accessing elements
+    let third: &i32 = &v2[2];                 // Direct indexing (may panic)
+    let safe_third: Option<&i32> = v2.get(2); // Safe access with get()
+    
+    // Using match with safe access
+    match v2.get(2) {
+        Some(third) => println!("Third element is {}", third),
+        None => println!("No third element"),
+    }
+}
+```
+
+#### Iterating Over Vectors
+```rust
+fn main() {
+    let mut v = vec![100, 32, 57];
+    
+    // Immutable iteration
+    for i in &v {
+        println!("{}", i);
+    }
+    
+    // Mutable iteration
+    for i in &mut v {
+        *i += 50;  // Dereference to modify
+    }
+}
+```
+
+#### Vector Memory Management
+```rust
+fn main() {
+    // Preallocating space
+    let mut v = Vec::with_capacity(10);
+    println!("Length: {}, Capacity: {}", v.len(), v.capacity());
+    
+    // Growing beyond capacity
+    for i in 0..16 {
+        v.push(i);
+        println!("Length: {}, Capacity: {}", v.len(), v.capacity());
+    }
+}
+```
+
+### Strings
+> Summary: Strings in Rust come in two forms: String and &str.
+
+#### String vs &str
+```rust
+fn main() {
+    // String type (owned)
+    let mut s = String::from("hello");
+    s.push_str(" world");    // Can modify String
+    
+    // String slice (&str)
+    let s1: &str = "hello world";  // String literal - immutable
+    let s2: &str = &s[..];         // Whole slice of String
+    let s3: &str = &s[0..5];       // Partial slice
+}
+```
+
+#### String Operations
+```rust
+fn main() {
+    // Concatenation
+    let s1 = String::from("Hello, ");
+    let s2 = String::from("world!");
+    let s3 = s1 + &s2;  // Note: s1 has been moved here
+    
+    // Format macro
+    let s = format!("{}-{}-{}", "Hello", "world", "!");
+    
+    // Iteration
+    for c in "नमस्ते".chars() {
+        println!("{}", c);
+    }
+    
+    for b in "hello".bytes() {
+        println!("{}", b);
+    }
+}
+```
+
+### HashMaps
+> Summary: HashMap<K, V> stores key-value pairs with O(1) lookup.
+
+#### Basic HashMap Usage
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    // Creating
+    let mut scores = HashMap::new();
+    
+    // Inserting
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50);
+    
+    // Accessing
+    let team_name = String::from("Blue");
+    let score = scores.get(&team_name);
+    
+    // Iterating
+    for (key, value) in &scores {
+        println!("{}: {}", key, value);
+    }
+}
+```
+
+#### Updating HashMap Values
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    let mut scores = HashMap::new();
+    
+    // Overwriting
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Blue"), 25);  // Value is 25
+    
+    // Insert if key has no value
+    scores.entry(String::from("Yellow")).or_insert(50);
+    
+    // Update based on old value
+    let text = "hello world wonderful world";
+    let mut map = HashMap::new();
+    
+    for word in text.split_whitespace() {
+        let count = map.entry(word).or_insert(0);
+        *count += 1;
+    }
+}
+```
 
 ---
 
-## Structs and Enums
+## Compound Types
+> Summary: Compound types can group multiple values into one type. The main compound types are structs and enums.
 
 ### Structs
+> Summary: Structs are custom data types that let you package related values together.
 
-Define custom data types using `struct` to group related data.
+#### Defining and Instantiating Structs
 ```rust
+// Define a struct
 struct User {
     username: String,
     email: String,
@@ -674,292 +670,1517 @@ struct User {
 }
 
 fn main() {
-    let user1 = User {
-        username: String::from("alice"),
-        email: String::from("alice@example.com"),
-        sign_in_count: 1,
+    // Create an instance
+    let mut user1 = User {
+        email: String::from("someone@example.com"),
+        username: String::from("someusername123"),
         active: true,
+        sign_in_count: 1,
+    };
+
+    // Modify a field (if instance is mutable)
+    user1.email = String::from("newemail@example.com");
+    
+    // Create instance from other instance
+    let user2 = User {
+        email: String::from("another@example.com"),
+        username: String::from("anotherusername567"),
+        ..user1  // Use remaining fields from user1
     };
 }
 ```
 
-### Enums
-
-Enums allow you to define a type by enumerating its possible variants.
+#### Tuple Structs
 ```rust
-enum Message {
-    Quit,
-    Move { x: i32, y: i32 },
-    Write(String),
-    ChangeColor(i32, i32, i32),
+struct Color(i32, i32, i32);
+struct Point(i32, i32, i32);
+
+fn main() {
+    let black = Color(0, 0, 0);
+    let origin = Point(0, 0, 0);
+    
+    // Access tuple struct fields
+    println!("First value: {}", black.0);
+}
+```
+
+#### Methods and Associated Functions
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    // Associated function (like a static method)
+    fn square(size: u32) -> Rectangle {
+        Rectangle {
+            width: size,
+            height: size,
+        }
+    }
+    
+    // Method
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+    
+    // Method that takes ownership
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
 }
 
 fn main() {
-    let msg = Message::Write(String::from("Hello"));
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    
+    // Call method
+    println!("Area: {}", rect1.area());
+    
+    // Call associated function
+    let square = Rectangle::square(20);
+}
+```
+
+### Enums
+> Summary: Enums allow you to define a type by enumerating its possible variants.
+
+#### Basic Enum Definition
+```rust
+enum IpAddrKind {
+    V4(u8, u8, u8, u8),
+    V6(String),
+}
+
+fn main() {
+    let home = IpAddrKind::V4(127, 0, 0, 1);
+    let loopback = IpAddrKind::V6(String::from("::1"));
+}
+```
+
+#### Complex Enum Example
+```rust
+enum Message {
+    Quit,                       // No data
+    Move { x: i32, y: i32 },   // Anonymous struct
+    Write(String),             // Single value
+    ChangeColor(i32, i32, i32),// Tuple
+}
+
+impl Message {
+    fn call(&self) {
+        // Method implementation
+        match self {
+            Message::Quit => println!("Quit"),
+            Message::Move { x, y } => println!("Move to {}, {}", x, y),
+            Message::Write(text) => println!("Text message: {}", text),
+            Message::ChangeColor(r, g, b) => println!("Change color to: {}, {}, {}", r, g, b),
+        }
+    }
+}
+
+fn main() {
+    let msg = Message::Write(String::from("hello"));
+    msg.call();
+}
+```
+
+#### Option Enum
+```rust
+fn main() {
+    // Some value
+    let some_number = Some(5);
+    let some_string = Some("a string");
+    
+    // No value
+    let absent_number: Option<i32> = None;
+    
+    // Working with Option
+    let x: i8 = 5;
+    let y: Option<i8> = Some(5);
+    
+    // Must handle the None case
+    match y {
+        None => println!("No value"),
+        Some(i) => println!("Value is {}", i),
+    }
+    
+    // Or use if let
+    if let Some(value) = y {
+        println!("Value is {}", value);
+    }
 }
 ```
 
 ---
 
 ## Pattern Matching
+> Summary: Pattern matching is a powerful feature for checking and destructuring values.
 
-Use `match` to handle different values and control flow based on pattern matching.
+### Match Expression
 ```rust
 fn main() {
-    let number = 3;
+    let number = 13;
     
     match number {
-        1 => println!("One"),
-        2 => println!("Two"),
-        3 => println!("Three"),
-        _ => println!("Other"),
+        // Match a single value
+        1 => println!("One!"),
+        
+        // Match multiple values
+        2 | 3 | 5 | 7 | 11 | 13 => println!("This is a prime"),
+        
+        // Match a range
+        13..=19 => println!("A teen"),
+        
+        // Default case
+        _ => println!("Ain't special"),
     }
 }
 ```
 
----
-
-## Modules and Crates
-
-Modules help you organize code into namespaces, while crates are the compilation units (libraries or executables).
-
-### Example Module
+### Pattern Types
 ```rust
-// In src/lib.rs
-pub mod greetings {
-    pub fn hello() {
-        println!("Hello, world!");
+fn main() {
+    // Matching literals
+    let x = 1;
+    match x {
+        1 => println!("one"),
+        2 => println!("two"),
+        _ => println!("anything"),
+    }
+    
+    // Matching named variables
+    let x = Some(5);
+    let y = 10;
+    match x {
+        Some(50) => println!("Got 50"),
+        Some(y) => println!("Matched, y = {y}"),
+        _ => println!("Default case, x = {:?}", x),
+    }
+    
+    // Matching multiple patterns
+    let x = 1;
+    match x {
+        1 | 2 => println!("one or two"),
+        3 => println!("three"),
+        _ => println!("anything"),
     }
 }
 ```
 
-### Using the Module
+### Destructuring
 ```rust
-// In src/main.rs
-use mycrate::greetings;
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+enum Color {
+    Rgb(i32, i32, i32),
+    Hsv(i32, i32, i32),
+}
 
 fn main() {
-    greetings::hello();
-}
-```
-
----
-
-## Traits
-
-Traits define shared behavior, similar to interfaces in other languages.
-```rust
-trait Summary {
-    fn summarize(&self) -> String;
-}
-
-struct Article {
-    headline: String,
-    content: String,
-}
-
-impl Summary for Article {
-    fn summarize(&self) -> String {
-        format!("{}: {}", self.headline, &self.content[0..10])
-    }
-}
-```
-
----
-
-## Generics
-
-Generics allow you to write flexible and reusable functions and types.
-```rust
-fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
-    let mut largest = list[0];
-    for &item in list.iter() {
-        if item > largest {
-            largest = item;
+    // Destructuring structs
+    let p = Point { x: 0, y: 7 };
+    let Point { x: a, y: b } = p;
+    println!("a = {}, b = {}", a, b);
+    
+    // Shorter struct destructuring
+    let Point { x, y } = p;
+    println!("x = {}, y = {}", x, y);
+    
+    // Destructuring enums
+    let color = Color::Rgb(0, 160, 255);
+    match color {
+        Color::Rgb(r, g, b) => {
+            println!("Red: {}, green: {}, blue: {}", r, g, b);
+        }
+        Color::Hsv(h, s, v) => {
+            println!("Hue: {}, saturation: {}, value: {}", h, s, v);
         }
     }
-    largest
 }
 ```
 
----
-
-## Collections
-
-### Vectors
-
-Vectors are dynamically growable arrays.
+### Match Guards
 ```rust
 fn main() {
-    let mut v = vec![1, 2, 3];
-    v.push(4);
+    let num = Some(4);
+    
+    match num {
+        Some(x) if x < 5 => println!("less than five: {}", x),
+        Some(x) => println!("{}", x),
+        None => (),
+    }
+    
+    // Multiple conditions
+    let x = 4;
+    let y = false;
+    
+    match x {
+        4 | 5 | 6 if y => println!("yes"),
+        _ => println!("no"),
+    }
 }
 ```
 
-### HashMaps
-
-HashMaps store key-value pairs.
+### if let Expression
 ```rust
-use std::collections::HashMap;
-
 fn main() {
-    let mut scores = HashMap::new();
-    scores.insert(String::from("Blue"), 10);
-    scores.insert(String::from("Yellow"), 50);
+    let config_max = Some(3u8);
+    
+    // Using match
+    match config_max {
+        Some(max) => println!("Maximum is configured to be {}", max),
+        _ => (),
+    }
+    
+    // Same using if let (more concise)
+    if let Some(max) = config_max {
+        println!("Maximum is configured to be {}", max);
+    }
+    
+    // if let with else
+    let mut count = 0;
+    if let Some(max) = config_max {
+        println!("Maximum is {}", max);
+    } else {
+        count += 1;
+    }
+}
+```
+
+### while let Conditional Loop
+```rust
+fn main() {
+    let mut stack = Vec::new();
+    
+    stack.push(1);
+    stack.push(2);
+    stack.push(3);
+    
+    // Pop values until stack is empty
+    while let Some(top) = stack.pop() {
+        println!("{}", top);
+    }
 }
 ```
 
 ---
 
 ## Error Handling
+> Summary: Rust has no exceptions. Instead, it uses the Result enum for recoverable errors and panic! for unrecoverable errors.
 
-Rust uses `Result` and `Option` types for error management, promoting robust handling of potential errors.
+### Unrecoverable Errors with panic!
+```rust
+fn main() {
+    // Basic panic
+    panic!("crash and burn");
 
-### Handling Errors with `Result`
+    // Panic from array access
+    let v = vec![1, 2, 3];
+    v[99]; // This will panic!
+}
+```
+
+### Recoverable Errors with Result
 ```rust
 use std::fs::File;
 use std::io::ErrorKind;
 
 fn main() {
-    let f = File::open("hello.txt");
-
-    let f = match f {
+    // Basic Result handling
+    let file_result = File::open("hello.txt");
+    
+    let file = match file_result {
         Ok(file) => file,
         Err(error) => match error.kind() {
             ErrorKind::NotFound => match File::create("hello.txt") {
                 Ok(fc) => fc,
                 Err(e) => panic!("Problem creating file: {:?}", e),
             },
-            other_error => panic!("Problem opening the file: {:?}", other_error),
+            other_error => panic!("Problem opening file: {:?}", other_error),
         },
     };
 }
 ```
 
-### Using `Option`
+### Shortcuts for Error Handling
+
+#### The ? Operator
+```rust
+use std::fs::File;
+use std::io;
+use std::io::Read;
+
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut username = String::new();
+    File::open("hello.txt")?.read_to_string(&mut username)?;
+    Ok(username)
+}
+
+// Even shorter using fs::read_to_string
+use std::fs;
+
+fn read_username_from_file_short() -> Result<String, io::Error> {
+    fs::read_to_string("hello.txt")
+}
+```
+
+#### unwrap and expect
 ```rust
 fn main() {
-    let some_number: Option<i32> = Some(5);
-    if let Some(x) = some_number {
-        println!("Number: {}", x);
+    // unwrap will panic! if the Result is an Err
+    let file = File::open("hello.txt").unwrap();
+    
+    // expect lets us choose the panic! message
+    let file = File::open("hello.txt")
+        .expect("Failed to open hello.txt");
+}
+```
+
+### Custom Error Types
+```rust
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+struct AppError {
+    kind: String,
+    message: String,
+}
+
+// Implement Display for AppError
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}:{}", self.kind, self.message)
+    }
+}
+
+// Implement Error for AppError
+impl Error for AppError {}
+
+fn main() -> Result<(), AppError> {
+    Err(AppError {
+        kind: String::from("IO"),
+        message: String::from("Failed to read file"),
+    })
+}
+```
+
+### Propagating Errors
+```rust
+use std::error::Error;
+use std::fs::File;
+use std::io::{self, Read};
+
+// Using Box<dyn Error> for different error types
+fn read_and_process() -> Result<String, Box<dyn Error>> {
+    let mut file = File::open("hello.txt")?;
+    let mut content = String::new();
+    file.read_to_string(&mut content)?;
+    
+    Ok(content)
+}
+
+fn main() {
+    match read_and_process() {
+        Ok(content) => println!("File content: {}", content),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+```
+
+### Error Handling Guidelines
+```rust
+fn main() {
+    // Use Result when:
+    // 1. The error is expected and recoverable
+    // 2. You want to give the caller choice in handling the error
+    let result = std::fs::read_to_string("config.txt");
+    
+    // Use panic! when:
+    // 1. The error is unexpected or unrecoverable
+    // 2. You're writing examples or tests
+    // 3. You're prototyping
+    assert!(result.is_ok(), "Config file must exist!");
+    
+    // Use expect when:
+    // 1. You're sure the operation will succeed
+    // 2. You want a better error message than unwrap()
+    let config = result.expect("Config file must be readable");
+}
+```
+
+---
+
+## Generic Types & Traits
+> Summary: Generics provide abstraction over types, while traits define shared behavior.
+
+### Generic Types
+> Summary: Generics allow you to write code that works with multiple types.
+
+#### Generic Functions
+```rust
+fn largest<T: PartialOrd>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+    
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+    
+    largest
+}
+
+fn main() {
+    let numbers = vec![34, 50, 25, 100, 65];
+    println!("Largest number: {}", largest(&numbers));
+    
+    let chars = vec!['y', 'm', 'a', 'q'];
+    println!("Largest char: {}", largest(&chars));
+}
+```
+
+#### Generic Structs
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+struct MixedPoint<T, U> {
+    x: T,
+    y: U,
+}
+
+fn main() {
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+    let mixed = MixedPoint { x: 5, y: 4.0 };
+}
+```
+
+### Traits
+> Summary: Traits define shared behavior between types.
+
+#### Defining and Implementing Traits
+```rust
+trait Summary {
+    // Default implementation
+    fn summarize_author(&self) -> String;
+    
+    fn summarize(&self) -> String {
+        format!("(Read more from {}...)", self.summarize_author())
+    }
+}
+
+struct NewsArticle {
+    headline: String,
+    location: String,
+    author: String,
+    content: String,
+}
+
+impl Summary for NewsArticle {
+    fn summarize_author(&self) -> String {
+        format!("@{}", self.author)
+    }
+    
+    fn summarize(&self) -> String {
+        format!("{}, by {} ({})", self.headline, self.author, self.location)
+    }
+}
+
+struct Tweet {
+    username: String,
+    content: String,
+    reply: bool,
+    retweet: bool,
+}
+
+impl Summary for Tweet {
+    fn summarize_author(&self) -> String {
+        format!("@{}", self.username)
+    }
+}
+```
+
+#### Trait Bounds
+```rust
+// Single trait bound
+pub fn notify<T: Summary>(item: &T) {
+    println!("Breaking news! {}", item.summarize());
+}
+
+// Multiple trait bounds
+pub fn notify<T: Summary + Display>(item: &T) {
+    println!("Breaking news! {}", item.summarize());
+}
+
+// Where clauses for cleaner syntax
+fn some_function<T, U>(t: &T, u: &U) -> i32
+    where T: Display + Clone,
+          U: Clone + Debug
+{
+    // Function body
+    42
+}
+```
+
+#### Trait Objects
+```rust
+pub trait Draw {
+    fn draw(&self);
+}
+
+pub struct Screen {
+    pub components: Vec<Box<dyn Draw>>,
+}
+
+impl Screen {
+    pub fn run(&self) {
+        for component in self.components.iter() {
+            component.draw();
+        }
+    }
+}
+
+// Implementing for different types
+struct Button {
+    width: u32,
+    height: u32,
+    label: String,
+}
+
+impl Draw for Button {
+    fn draw(&self) {
+        // Draw button
+    }
+}
+
+struct SelectBox {
+    width: u32,
+    height: u32,
+    options: Vec<String>,
+}
+
+impl Draw for SelectBox {
+    fn draw(&self) {
+        // Draw select box
+    }
+}
+```
+
+### Generic Type Constraints
+```rust
+use std::fmt::Display;
+
+struct Pair<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Pair<T> {
+    fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+}
+
+// Implementation only for types that implement Display + PartialOrd
+impl<T: Display + PartialOrd> Pair<T> {
+    fn cmp_display(&self) {
+        if self.x >= self.y {
+            println!("The largest member is x = {}", self.x);
+        } else {
+            println!("The largest member is y = {}", self.y);
+        }
     }
 }
 ```
 
 ---
 
-## Smart Pointers
+## Modules & Project Organization
+> Summary: Modules help you organize code and control privacy. A package can contain multiple binary crates and optionally one library crate.
 
-Rust offers smart pointers that provide additional capabilities beyond regular references:
-
-- **Box<T>:** For heap allocation.
-- **Rc<T>:** For multiple ownership in single-threaded scenarios.
-- **RefCell<T>:** For interior mutability.
-
-Example using `Box<T>`:
+### Module System
 ```rust
-fn main() {
-    let b = Box::new(5);
-    println!("b = {}", b);
+// In src/lib.rs
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+        fn seat_at_table() {}
+    }
+    
+    mod serving {
+        fn take_order() {}
+        fn serve_order() {}
+        fn take_payment() {}
+    }
 }
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+    
+    // Relative path
+    front_of_house::hosting::add_to_waitlist();
+}
+```
+
+### Project Structure
+```
+my_project/
+├── Cargo.toml
+├── src/
+│   ├── main.rs       // Binary crate root
+│   ├── lib.rs        // Library crate root
+│   └── bin/          // Additional binaries
+│       └── another_binary.rs
+```
+
+### Modules in Separate Files
+```rust
+// src/lib.rs
+mod front_of_house;  // Declares the module
+pub use crate::front_of_house::hosting;  // Re-export
+
+// src/front_of_house.rs
+pub mod hosting;  // Declares the submodule
+
+// src/front_of_house/hosting.rs
+pub fn add_to_waitlist() {}
+```
+
+### Visibility and Privacy
+```rust
+mod back_of_house {
+    // Public struct with some private fields
+    pub struct Breakfast {
+        pub toast: String,
+        seasonal_fruit: String,  // Private field
+    }
+    
+    impl Breakfast {
+        pub fn summer(toast: &str) -> Breakfast {
+            Breakfast {
+                toast: String::from(toast),
+                seasonal_fruit: String::from("peaches"),
+            }
+        }
+    }
+    
+    // Public enum with all variants public
+    pub enum Appetizer {
+        Soup,
+        Salad,
+    }
+}
+
+pub fn eat_at_restaurant() {
+    let mut meal = back_of_house::Breakfast::summer("Rye");
+    meal.toast = String::from("Wheat");
+    // meal.seasonal_fruit = String::from("blueberries"); // Error!
+    
+    let order1 = back_of_house::Appetizer::Soup;
+    let order2 = back_of_house::Appetizer::Salad;
+}
+```
+
+### Using External Packages
+```toml
+# Cargo.toml
+[package]
+name = "my_project"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8.5"
+serde = { version = "1.0", features = ["derive"] }
+```
+
+```rust
+// src/main.rs
+use rand::Rng;
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let mut rng = rand::thread_rng();
+    let random_number: i32 = rng.gen_range(1..=100);
+    println!("Random number: {}", random_number);
+}
+```
+
+### Workspaces
+```toml
+# Cargo.toml in workspace root
+[workspace]
+members = [
+    "adder",
+    "add_one",
+]
+```
+
+```
+workspace_root/
+├── Cargo.toml
+├── adder/
+│   ├── Cargo.toml
+│   └── src/
+│       └── main.rs
+└── add_one/
+    ├── Cargo.toml
+    └── src/
+        └── lib.rs
+```
+
+### Re-exporting Names
+```rust
+// In src/lib.rs
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+// Re-export for easier access
+pub use crate::front_of_house::hosting;
+
+// Users can now use:
+// restaurant::hosting::add_to_waitlist();
+// Instead of:
+// restaurant::front_of_house::hosting::add_to_waitlist();
 ```
 
 ---
 
 ## Concurrency
+> Summary: Rust's ownership and type systems guarantee thread safety and prevent data races at compile time.
 
-Rust's concurrency model prevents data races by enforcing strict ownership rules, making it safe to run threads concurrently.
+### Threads
 ```rust
 use std::thread;
+use std::time::Duration;
 
 fn main() {
+    // Spawn a new thread
     let handle = thread::spawn(|| {
         for i in 1..10 {
-            println!("hi number {} from spawned thread!", i);
+            println!("hi number {} from the spawned thread!", i);
+            thread::sleep(Duration::from_millis(1));
         }
     });
-
+    
+    // Main thread work
     for i in 1..5 {
-        println!("hi number {} from main thread!", i);
+        println!("hi number {} from the main thread!", i);
+        thread::sleep(Duration::from_millis(1));
     }
-
+    
+    // Wait for spawned thread to finish
     handle.join().unwrap();
 }
 ```
 
----
-
-## Macros
-
-Macros enable metaprogramming in Rust and can reduce repetitive code. Rust includes many built-in macros like `println!`, `vec!`, etc.
+### Message Passing
 ```rust
-#[macro_export]
-macro_rules! say_hello {
-    () => {
-        println!("Hello!");
-    };
-}
+use std::sync::mpsc;
+use std::thread;
 
 fn main() {
-    say_hello!();
+    // Create a channel
+    let (tx, rx) = mpsc::channel();
+    
+    // Clone transmitter for multiple senders
+    let tx1 = tx.clone();
+    
+    // Spawn thread with one sender
+    thread::spawn(move || {
+        tx.send("hello from first thread").unwrap();
+    });
+    
+    // Spawn thread with cloned sender
+    thread::spawn(move || {
+        tx1.send("hello from second thread").unwrap();
+    });
+    
+    // Receive messages
+    for received in rx {
+        println!("Got: {}", received);
+    }
+}
+```
+
+### Shared State
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    // Create a mutex wrapped in an Arc (Atomic Reference Counting)
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+    
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        let handle = thread::spawn(move || {
+            let mut num = counter.lock().unwrap();
+            *num += 1;
+        });
+        handles.push(handle);
+    }
+    
+    // Wait for all threads
+    for handle in handles {
+        handle.join().unwrap();
+    }
+    
+    println!("Result: {}", *counter.lock().unwrap());
+}
+```
+
+### Thread Safety with Send and Sync
+```rust
+// Send: Type can be transferred between threads
+// Sync: Type can be shared between threads
+
+use std::marker::{Send, Sync};
+
+// Custom type that is both Send and Sync
+#[derive(Debug)]
+struct ThreadSafeCounter {
+    count: u32,
+}
+
+// Implementing Send and Sync is unsafe
+unsafe impl Send for ThreadSafeCounter {}
+unsafe impl Sync for ThreadSafeCounter {}
+
+fn main() {
+    let counter = ThreadSafeCounter { count: 0 };
+    
+    // This works because ThreadSafeCounter is Send
+    thread::spawn(move || {
+        println!("Counter in thread: {:?}", counter);
+    }).join().unwrap();
+}
+```
+
+### Async/Await
+```rust
+use tokio;
+
+#[tokio::main]
+async fn main() {
+    // Spawn async tasks
+    let handle = tokio::spawn(async {
+        // Async work here
+        println!("Hello from async task!");
+    });
+    
+    // Wait for task to complete
+    handle.await.unwrap();
+    
+    // Multiple concurrent tasks
+    let handles = vec![
+        tokio::spawn(async { /* task 1 */ }),
+        tokio::spawn(async { /* task 2 */ }),
+    ];
+    
+    // Wait for all tasks
+    for handle in handles {
+        handle.await.unwrap();
+    }
+}
+```
+
+### Parallel Iterator Operations
+```rust
+use rayon::prelude::*;
+
+fn main() {
+    let numbers: Vec<i32> = (0..1000).collect();
+    
+    // Sequential sum
+    let sum: i32 = numbers.iter().sum();
+    
+    // Parallel sum
+    let parallel_sum: i32 = numbers.par_iter().sum();
+    
+    // Parallel filter and map
+    let result: Vec<i32> = numbers
+        .par_iter()
+        .filter(|&&x| x % 2 == 0)
+        .map(|&x| x * x)
+        .collect();
 }
 ```
 
 ---
 
 ## Testing
+> Summary: Rust has built-in support for unit tests, integration tests, and documentation tests.
 
-Write tests in Rust using the `#[test]` attribute. Run tests with `cargo test`.
+### Unit Tests
 ```rust
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn it_works() {
-        assert_eq!(2 + 2, 4);
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+    
+    #[test]
+    fn larger_can_hold_smaller() {
+        let larger = Rectangle {
+            width: 8,
+            height: 7,
+        };
+        let smaller = Rectangle {
+            width: 5,
+            height: 1,
+        };
+        
+        assert!(larger.can_hold(&smaller));
+    }
+    
+    #[test]
+    #[should_panic(expected = "Guess value must be less than or equal to 100")]
+    fn greater_than_100() {
+        Guess::new(200);
     }
 }
 ```
 
----
-
-## Documentation and Comments
-
-Document your code using triple-slash comments (`///`). These comments are included in the generated documentation.
+### Test Organization
 ```rust
-/// Adds two numbers.
+// src/lib.rs
+pub fn add_two(a: i32) -> i32 {
+    a + 2
+}
+
+// Unit tests in the same file
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_adds_two() {
+        assert_eq!(4, add_two(2));
+    }
+}
+
+// Integration tests in tests directory
+// tests/integration_test.rs
+use my_crate;
+
+#[test]
+fn it_adds_two() {
+    assert_eq!(4, my_crate::add_two(2));
+}
+```
+
+### Test Attributes
+```rust
+#[test]            // Marks function as a test
+#[ignore]          // Marks test to be ignored unless specifically requested
+#[should_panic]    // Test should panic
+#[bench]           // Marks function as a benchmark (nightly only)
+
+#[test]
+#[ignore = "too slow"]
+fn expensive_test() {
+    // ...
+}
+```
+
+### Assertions
+```rust
+fn main() {
+    // Basic assertions
+    assert!(true);
+    assert_eq!(2 + 2, 4);
+    assert_ne!(2 + 2, 5);
+    
+    // Custom messages
+    assert!(
+        true,
+        "This is a custom error message: {} {}",
+        "formatted", "arguments"
+    );
+    
+    // Floating point comparisons
+    assert!((0.1 + 0.2 - 0.3).abs() < f64::EPSILON);
+}
+```
+
+### Running Tests
+```bash
+# Run all tests
+cargo test
+
+# Run specific test
+cargo test it_works
+
+# Run tests whose names contain a string
+cargo test add
+
+# Run ignored tests
+cargo test -- --ignored
+
+# Run tests with output
+cargo test -- --nocapture
+
+# Run tests in parallel or sequentially
+cargo test -- --test-threads=1
+```
+
+### Documentation Tests
+```rust
+/// Adds one to the number given.
 ///
 /// # Examples
 ///
 /// ```
-/// let result = add(2, 3);
-/// assert_eq!(result, 5);
+/// let arg = 5;
+/// let answer = my_crate::add_one(arg);
+///
+/// assert_eq!(6, answer);
 /// ```
-fn add(a: i32, b: i32) -> i32 {
-    a + b
+pub fn add_one(x: i32) -> i32 {
+    x + 1
+}
+```
+
+### Test Driven Development Example
+```rust
+// First, write the test
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_stack_push() {
+        let mut stack = Stack::new();
+        stack.push(1);
+        assert_eq!(stack.pop(), Some(1));
+    }
+
+    #[test]
+    fn test_stack_pop_empty() {
+        let mut stack = Stack::new();
+        assert_eq!(stack.pop(), None);
+    }
+}
+
+// Then implement the functionality
+pub struct Stack<T> {
+    items: Vec<T>,
+}
+
+impl<T> Stack<T> {
+    pub fn new() -> Self {
+        Stack { items: Vec::new() }
+    }
+
+    pub fn push(&mut self, item: T) {
+        self.items.push(item);
+    }
+
+    pub fn pop(&mut self) -> Option<T> {
+        self.items.pop()
+    }
+}
+```
+
+### Integration Tests
+```rust
+// tests/integration_test.rs
+use my_crate;
+
+mod common;  // Load common test utilities
+
+#[test]
+fn integration_test() {
+    common::setup();
+    assert_eq!(my_crate::add_two(2), 4);
+}
+
+// tests/common/mod.rs
+pub fn setup() {
+    // Setup code used by multiple test files
 }
 ```
 
 ---
 
-## Debugging
+## Smart Pointers
+> Summary: Smart pointers are data structures that act like pointers but have additional metadata and capabilities.
 
-- **Print Debug Information:**
-  ```rust
-  println!("{:?}", var);
-  ```
-- **Enable Backtraces:**
-  ```bash
-  export RUST_BACKTRACE=1
-  ```
+### Box<T>
+> Summary: Box<T> provides heap allocation and ownership of data.
+
+```rust
+fn main() {
+    // Allocating on the heap
+    let b = Box::new(5);
+    println!("b = {}", b);
+    
+    // Recursive types with Box
+    #[derive(Debug)]
+    enum List {
+        Cons(i32, Box<List>),
+        Nil,
+    }
+    
+    let list = List::Cons(1, Box::new(List::Cons(2, Box::new(List::Nil))));
+    println!("{:?}", list);
+}
+```
+
+### Rc<T>
+> Summary: Reference Counting allows multiple ownership in single-threaded scenarios.
+
+```rust
+use std::rc::Rc;
+
+enum List {
+    Cons(i32, Rc<List>),
+    Nil,
+}
+
+fn main() {
+    let a = Rc::new(List::Cons(5, Rc::new(List::Nil)));
+    println!("Reference count after creating a = {}", Rc::strong_count(&a));
+    
+    let b = List::Cons(3, Rc::clone(&a));
+    println!("Reference count after creating b = {}", Rc::strong_count(&a));
+    
+    {
+        let c = List::Cons(4, Rc::clone(&a));
+        println!("Reference count after creating c = {}", Rc::strong_count(&a));
+    }
+    
+    println!("Reference count after c goes out of scope = {}", Rc::strong_count(&a));
+}
+```
+
+### RefCell<T>
+> Summary: Interior mutability pattern allows mutable borrowing in immutable contexts.
+
+```rust
+use std::cell::RefCell;
+
+fn main() {
+    let data = RefCell::new(5);
+    
+    // Multiple mutable borrows (at different times)
+    {
+        let mut m1 = data.borrow_mut();
+        *m1 += 1;
+    }   // m1 is dropped here
+    
+    let mut m2 = data.borrow_mut();
+    *m2 += 1;
+    
+    println!("Data = {:?}", data.borrow());
+}
+```
+
+### Combining Rc<T> and RefCell<T>
+```rust
+use std::rc::Rc;
+use std::cell::RefCell;
+
+#[derive(Debug)]
+struct Node {
+    value: i32,
+    children: RefCell<Vec<Rc<Node>>>,
+}
+
+fn main() {
+    let leaf = Rc::new(Node {
+        value: 3,
+        children: RefCell::new(vec![]),
+    });
+    
+    let branch = Rc::new(Node {
+        value: 5,
+        children: RefCell::new(vec![Rc::clone(&leaf)]),
+    });
+    
+    println!("leaf = {:?}", leaf);
+    println!("branch = {:?}", branch);
+}
+```
+
+### Weak<T>
+> Summary: Weak references that don't prevent deallocation, useful for preventing reference cycles.
+
+```rust
+use std::rc::{Rc, Weak};
+use std::cell::RefCell;
+
+#[derive(Debug)]
+struct Node {
+    value: i32,
+    parent: RefCell<Weak<Node>>,
+    children: RefCell<Vec<Rc<Node>>>,
+}
+
+fn main() {
+    let leaf = Rc::new(Node {
+        value: 3,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![]),
+    });
+    
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+    
+    let branch = Rc::new(Node {
+        value: 5,
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![Rc::clone(&leaf)]),
+    });
+    
+    *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+    
+    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+}
+```
+
+### Custom Smart Pointer
+```rust
+use std::ops::Deref;
+
+struct MyBox<T>(T);
+
+impl<T> MyBox<T> {
+    fn new(x: T) -> MyBox<T> {
+        MyBox(x)
+    }
+}
+
+impl<T> Deref for MyBox<T> {
+    type Target = T;
+    
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+fn main() {
+    let x = 5;
+    let y = MyBox::new(x);
+    
+    assert_eq!(5, x);
+    assert_eq!(5, *y);  // Deref coercion
+}
+```
 
 ---
 
-## Further Resources
+## Macros
+> Summary: Macros are a way of writing code that writes other code, known as metaprogramming.
 
-- [The Rust Programming Language (The Book)](https://doc.rust-lang.org/book/)
-- [Rust by Example](https://doc.rust-lang.org/rust-by-example/)
-- [Rust Documentation](https://www.rust-lang.org/learn)
-- [Cargo Documentation](https://doc.rust-lang.org/cargo/)
-- [Rust Playground](https://play.rust-lang.org/)
+### Declarative Macros
+```rust
+// Simple macro
+#[macro_export]
+macro_rules! vec2 {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push($x);
+            )*
+            temp_vec
+        }
+    };
+}
 
----
+fn main() {
+    let v = vec2![1, 2, 3];  // Creates: let v = {let mut temp_vec = Vec::new(); temp_vec.push(1); temp_vec.push(2); temp_vec.push(3); temp_vec};
+}
+```
+
+### Macro Patterns
+```rust
+macro_rules! my_macro {
+    // Match zero arguments
+    () => {
+        println!("No arguments");
+    };
+    
+    // Match one argument
+    ($x:expr) => {
+        println!("One argument: {}", $x);
+    };
+    
+    // Match multiple arguments
+    ($( $x:expr ),*) => {
+        {
+            $(
+                println!("Multiple arguments: {}", $x);
+            )*
+        }
+    };
+    
+    // Match specific patterns
+    (key: $key:expr, value: $val:expr) => {
+        println!("Key: {}, Value: {}", $key, $val);
+    };
+}
+```
+
+### Procedural Macros
+```rust
+use proc_macro;
+
+// Derive macro
+#[proc_macro_derive(MyTrait)]
+pub fn my_trait_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    // Implementation
+}
+
+// Attribute macro
+#[proc_macro_attribute]
+pub fn route(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    // Implementation
+}
+
+// Function-like macro
+#[proc_macro]
+pub fn sql(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    // Implementation
+}
+```
+
+### Common Macro Use Cases
+```rust
+// Debug printing
+println!("Debug: {:?}", value);
+
+// Format strings
+format!("Hello, {}!", name);
+
+// Vector creation
+let v = vec![1, 2, 3];
+
+// Error handling
+panic!("Error message");
+
+// Testing
+assert!(condition);
+assert_eq!(left, right);
+
+// Custom error messages
+assert!(
+    condition,
+    "Error occurred with value: {}",
+    value
+);
+```
+
+### Building Complex Macros
+```rust
+#[macro_export]
+macro_rules! hash_map {
+    // Empty map
+    () => {
+        {
+            use std::collections::HashMap;
+            HashMap::new()
+        }
+    };
+    
+    // Map with key-value pairs
+    ( $($key:expr => $value:expr),* $(,)? ) => {
+        {
+            use std::collections::HashMap;
+            let mut map = HashMap::new();
+            $(
+                map.insert($key, $value);
+            )*
+            map
+        }
+    };
+}
+
+fn main() {
+    let map = hash_map! {
+        "one" => 1,
+        "two" => 2,
+        "three" => 3,
+    };
+}
+```
+
+### Debugging Macros
+```rust
+// Use trace_macros! to see macro expansion
+#![feature(trace_macros)]
+trace_macros!(true);
+my_macro!(some args);
+trace_macros!(false);
+
+// Use log_syntax! to see what tokens are passed
+#![feature(log_syntax)]
+log_syntax!(true);
+my_macro!(some args);
+log_syntax!(false);
+
+// Expand macro without running
+cargo expand
+```
+
+### Best Practices
+```rust
+// Document macros
+/// Creates a vector containing the arguments.
+///
+/// # Examples
+///
+/// ```
+/// let v = vec![1, 2, 3];
+/// assert_eq!(v[0], 1);
+/// ```
+#[macro_export]
+macro_rules! vec {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push($x);
+            )*
+            temp_vec
+        }
+    };
+}
+
+// Use proper hygiene
+macro_rules! hygienic {
+    ($i:ident) => {
+        let $i = 42;  // Won't conflict with external variables
+    };
+}
+```
+
+[Continue with Advanced Features section...]
