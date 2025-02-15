@@ -2186,5 +2186,3 @@ macro_rules! hygienic {
     };
 }
 ```
-
-[Continue with Advanced Features section...]
