@@ -820,6 +820,94 @@ fn main() {
 }
 ```
 
+### Type Aliases
+```rust
+// Simple type alias
+type Board = [[char; 3]; 3];
+```
+
+### Deriving Traits
+```rust
+// Automatically implement traits
+#[derive(Clone, Debug)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+```
+
+### Implementing Display Trait
+```rust
+use std::fmt;
+
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl fmt::Display for Rectangle {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Rectangle of {}x{}", self.width, self.height)
+    }
+}
+
+fn main() {
+    let rect = Rectangle { width: 30, height: 50 };
+    println!("{}", rect);  // Uses Display trait
+}
+```
+
+### Iterator Methods
+```rust
+fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+    
+    // all() checks if all elements satisfy predicate
+    let all_positive = numbers.iter().all(|&x| x > 0);
+    
+    // filter_map combines filter and map
+    let parsed: Vec<i32> = "1 2 3"
+        .split_whitespace()
+        .filter_map(|s| s.parse().ok())
+        .collect();
+        
+    // iter() for immutable references
+    for &num in numbers.iter() {
+        println!("{}", num);
+    }
+}
+```
+
+### Method Chaining
+```rust
+fn main() {
+    let numbers: Vec<i32> = (0..10)          // Range
+        .filter(|x| x % 2 == 0)   // Keep even numbers
+        .map(|x| x * x)           // Square them
+        .collect();               // Collect into Vec
+}
+```
+
+### Result with the ? Operator
+```rust
+use std::fmt::Write;
+
+fn write_formatted(f: &mut fmt::Formatter) -> fmt::Result {
+    writeln!(f, "Line 1")?;  // Returns early if error
+    writeln!(f, "Line 2")?;  // Same as match or if let
+    Ok(())
+}
+```
+
+### Error Handling with eprintln!
+```rust
+fn process_input() {
+    if let Err(e) = std::io::stdin().read_line(&mut String::new()) {
+        eprintln!("Error reading input: {}", e);  // Prints to stderr
+    }
+}
+```
+
 ---
 
 ## Pattern Matching
