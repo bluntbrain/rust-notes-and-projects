@@ -7,9 +7,8 @@
 - [ ] **Read "The Rust Programming Language" Book**
   - [The Rust Programming Language](https://doc.rust-lang.org/book/)
 - [ ] **Build a blockchain in Rust**
-- [ ] **Watch Harkirat Webinars on Rust and Solana**
- - [Link](https://harkirat.classx.co.in/new-courses/13/content?activeTab=Content)
-- [ ] **Make a web server in Rust**
+- [ ] **Watch Harkirat Webinars on Rust and Solana** [Link](https://harkirat.classx.co.in/new-courses/13/content?activeTab=Content)
+- [ ] **Make a http/https web server in Rust**
 
 ### Advanced Rust Concepts
 
@@ -22,6 +21,9 @@
 - [ ] **Learn Tokio Library**
 - [ ] **Learn Substrate**
 - [ ] **Learn Anchor (for Solana)**
+- [ ] Lifetimes
+- [ ] Borsh/serde
+- [ ] Solana Token Library written in Rust [Link](https://github.com/solana-program/token/blob/main/program/src/lib.rs)
 
 ## Solana Bootcamp Projects
  - [Part 1](https://www.youtube.com/watch?v=amAq-WHAFs8&t=14300s)
@@ -83,4 +85,7 @@
 - [ ] Ava Protocol
 - [ ] Partisia Blockchain Applications
 - [ ] Blowfish
+- [ ] https://www.tensor.trade/
+- [ ] https://x.com/bullx_io
+- [ ] https://photon-sol.tinyastro.io/
 
