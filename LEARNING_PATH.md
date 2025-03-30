@@ -8,14 +8,20 @@
   - [The Rust Programming Language](https://doc.rust-lang.org/book/)
 - [ ] **Build a blockchain in Rust**
 - [ ] **Watch Harkirat Webinars on Rust and Solana**
+ - [Link](https://harkirat.classx.co.in/new-courses/13/content?activeTab=Content)
+- [ ] 
 
 ### Advanced Rust Concepts
 
 - [ ] **Study Ownership, Borrowing, and Lifetimes**
 - [ ] **Explore Concurrency in Rust**
 - [ ] **Understand Macros and Unsafe Rust**
+- [ ] **Learn how Rayon works**
+  - [Rayon docs](https://docs.rs/rayon/latest/rayon/)
 
 ## Solana Bootcamp Projects
+ - [Part 1](https://www.youtube.com/watch?v=amAq-WHAFs8&t=14300s)
+ - [Part 2](https://www.youtube.com/watch?v=HOdYZSe1uhE&t=576s)
 - [ ] **Project 1: Building a Favorites Program**
 - [ ] **Project 2: Creating a Voting Application**
 - [ ] **Project 3: Integrating Blinks and Actions**
@@ -29,4 +35,12 @@
 - [ ] **Project 11: Programmable Money**
 - [ ] **Project 12: Attacking the Bank**
 - [ ] **Project 13: Getting into Production**
+
+
+## Resources
+- [ ] **Rustconf 2024**
+ - [Youtube Playlist](https://www.youtube.com/watch?v=wTV0WCLERGg&list=PL2b0df3jKKiTWZeF7cip6ZUsaVXxWioRi)
+- [ ] **Nathan Stocks Udemy Courses**
+ - [Crash Course](https://www.udemy.com/course/ultimate-rust-crash-course/)
+ - [Intermediate Course](https://www.udemy.com/course/ultimate-rust-2/?couponCode=LEARNNOWPLANS)
 
